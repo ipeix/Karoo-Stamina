@@ -29,8 +29,8 @@ jobs:
           # Si GITHUB_TOKEN est refusé, crée un secret GPR_TOKEN (PAT classique, scope read:packages).
           USERNAME: ${{ github.actor }}
           TOKEN: ${{ secrets.GPR_TOKEN != '' && secrets.GPR_TOKEN || secrets.GITHUB_TOKEN }}
-        run: ./gradlew assembleRelease --stacktrace
-
+        run: bash gradlew assembleRelease --stacktrace
+        
       - name: Renommer l'APK
         run: cp app/build/outputs/apk/release/app-release.apk karoo-stamina.apk
 
