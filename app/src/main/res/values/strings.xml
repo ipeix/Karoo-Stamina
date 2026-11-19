@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Stamina</string>
+    <string name="extension_name">Stamina</string>
+    <string name="stamina_name">Stamina</string>
+    <string name="stamina_description">Réserve d\'énergie estimée (0 à 100 %), potentiel et tendance, calculés à partir de ta puissance, de CP et de W\'.</string>
+</resources>
