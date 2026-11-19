@@ -24,11 +24,13 @@ class StaminaDataType(
         emitter.onNext(UpdateGraphicConfig(showHeader = false))
         // Case pleine largeur (grille de 60 colonnes) = « ligne », sinon « demi-ligne ».
         val large = config.gridSize.first >= 40
+        // Hauteur réelle de la case en dp : sert à choisir une mise en page qui tient dans la case.
+        val heightDp = config.viewSize.second / context.resources.displayMetrics.density
         val job = CoroutineScope(Dispatchers.IO).launch {
             engine.state.collect { live ->
                 val snap = if (config.preview) StaminaSnapshot(72, 55, 48, Trend.DOWN) else live
                 val result = glance.compose(context, DpSize.Unspecified) {
-                    StaminaView(snap, large)
+                    StaminaView(snap, large, heightDp)
                 }
                 emitter.updateView(result.remoteViews)
             }

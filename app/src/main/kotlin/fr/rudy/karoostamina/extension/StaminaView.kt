@@ -92,9 +92,82 @@ fun drawArrow(trend: Trend, color: Int, size: Int = 64): Bitmap {
 private fun formatMinutes(m: Int): String =
     if (m >= 60) "${m / 60} h ${(m % 60).toString().padStart(2, '0')}" else "$m min"
 
-/** large = case "ligne" (pleine largeur), sinon "demi-ligne". */
+/**
+ * Choisit la mise en page d'après la hauteur réelle de la case (en dp) :
+ * compacte (une seule ligne) si la case est basse, complète sinon.
+ * large = case pleine largeur, sinon demi-largeur.
+ */
 @Composable
-fun StaminaView(snap: StaminaSnapshot, large: Boolean) {
+fun StaminaView(snap: StaminaSnapshot, large: Boolean, heightDp: Float) {
+    if (heightDp < COMPACT_MAX_HEIGHT_DP) {
+        CompactView(snap, large, heightDp)
+    } else {
+        TallView(snap, large)
+    }
+}
+
+const val COMPACT_MAX_HEIGHT_DP = 100f
+
+/** Une seule ligne : [Stamina / Pot.] [chiffre %] [flèche], jauge fine en bas. */
+@Composable
+private fun CompactView(snap: StaminaSnapshot, large: Boolean, heightDp: Float) {
+    val color = staminaColor(snap.stamina)
+    val numSp = (heightDp * 0.5f).coerceIn(22f, 52f).sp
+    val pctSp = (heightDp * 0.25f).coerceIn(12f, 20f).sp
+    val small = 10.sp
+    val barBmp = drawBar(snap.stamina, snap.potential, color, if (large) 480 else 240, 12)
+    val arrowBmp = drawArrow(snap.trend, color)
+    val arrowDp = (heightDp * 0.32f).coerceIn(14f, 26f).dp
+
+    Column(
+        modifier = GlanceModifier.fillMaxSize().padding(horizontal = 10.dp, vertical = 3.dp),
+    ) {
+        Row(
+            modifier = GlanceModifier.fillMaxWidth().defaultWeight(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (large) {
+                Column(modifier = GlanceModifier.defaultWeight()) {
+                    Text("Stamina", style = TextStyle(color = ColorProvider(GREY), fontSize = small))
+                    Text("Pot. ${snap.potential} %", style = TextStyle(color = ColorProvider(GREY), fontSize = small))
+                }
+            } else {
+                Box(modifier = GlanceModifier.defaultWeight()) {}
+            }
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(
+                    snap.stamina.toString(),
+                    style = TextStyle(
+                        color = ColorProvider(Color(color)),
+                        fontSize = numSp,
+                        fontWeight = FontWeight.Medium,
+                    ),
+                )
+                Text(" %", style = TextStyle(color = ColorProvider(GREY), fontSize = pctSp))
+            }
+            Box(
+                modifier = GlanceModifier.defaultWeight(),
+                contentAlignment = Alignment.CenterEnd,
+            ) {
+                Image(
+                    provider = ImageProvider(arrowBmp),
+                    contentDescription = "Tendance",
+                    modifier = GlanceModifier.size(arrowDp),
+                )
+            }
+        }
+        Image(
+            provider = ImageProvider(barBmp),
+            contentDescription = "Jauge stamina",
+            contentScale = ContentScale.FillBounds,
+            modifier = GlanceModifier.fillMaxWidth().height(4.dp),
+        )
+    }
+}
+
+/** Mise en page complète pour une case haute. */
+@Composable
+private fun TallView(snap: StaminaSnapshot, large: Boolean) {
     val color = staminaColor(snap.stamina)
     val composeColor = Color(color)
     val numberSize = if (large) 56.sp else 40.sp
